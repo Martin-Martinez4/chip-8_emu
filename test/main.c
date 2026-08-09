@@ -1,9 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
 
 int main(int argc, char* argv[]){
-    // seed rand
-    srand(time(NULL));
     printf("nothing yet");
     return 0;
 }

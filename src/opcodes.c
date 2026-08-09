@@ -1,0 +1,252 @@
+#include <stdlib.h>
+#include "opcodes.h"
+
+void noOp(CPU *cpu, uint16_t instruction){
+    return;
+}
+
+void ret(CPU *cpu, uint16_t instruction){
+    cpu->program_counter = cpu->stack[cpu->stack_pointer];
+    cpu->stack_pointer -= 1;
+} 
+
+void cls(CPU *cpu, uint16_t instruction){
+
+} 
+
+// shift right 12 to get first number of opcode
+// should change the name later to be more descriptive
+void handle0(CPU *cpu, uint16_t instruction){
+    if(instruction > 0x00EEu) return;
+    if((0x00F0 & instruction) != 0x00E0) return;
+
+    uint16_t pivot = 0x000F & instruction;
+
+    switch(pivot) {
+        case 0:
+            cls(cpu, instruction);
+            break;
+        case 0x000E:
+            ret(cpu, instruction);
+            break;
+    }
+}
+// 1nnn
+void jPAddr(CPU *cpu, uint16_t instruction){
+    // 0x0FFFu & instruction gets last 12 bits
+    uint16_t value = 0x0FFFu & instruction;
+    cpu->program_counter = value;
+}
+// 2nnn
+void callAddr(CPU *cpu, uint16_t instruction){
+    cpu->stack_pointer++;
+    cpu->stack[cpu->stack_pointer] = cpu->program_counter;
+    uint16_t value = 0x0FFFu & instruction;
+    cpu->program_counter = value;
+}
+// 3xkk
+// increasing program counter by 2 effectively skips one instruction
+void skipIfRegisterEqualsValue(CPU *cpu, uint16_t instruction){
+    uint16_t value = 0x00FFu & instruction;
+    uint16_t register_number = (0x0F00u & instruction) >> 8;
+    if(cpu->registers[register_number] == value){cpu->program_counter + 2;}
+}
+// 4xkk
+void skipIfRegisterNotEqualsValue(CPU *cpu, uint16_t instruction){
+    uint16_t value = 0x00FFu & instruction;
+    uint16_t register_number = (0x0F00u & instruction) >> 8;
+    if(cpu->registers[register_number] != value){cpu->program_counter += 2;}
+}
+// 5xy0
+void skipIfRegisterEqualsRegister(CPU *cpu, uint16_t instruction){
+
+    if((0x000F & instruction) != 0) return;
+
+    uint16_t register_x = (0x0F00u & instruction) >> 8;
+    uint16_t register_y = (0x00F0u & instruction) >> 4;
+
+    if(cpu->registers[register_x] == cpu->registers[register_y]) cpu->program_counter += 2;
+}
+// 6xkk
+void loadValueIntoRegister(CPU *cpu, uint16_t instruction){
+    uint16_t register_number = (0x0F00 & instruction) >> 8;
+    uint16_t value = 0x00FFu & instruction;
+
+    cpu->registers[register_number] = value;
+}
+// 7xkk - ADD Vx, byte
+// Set Vx = Vx + kk.
+void addValueToRegister(CPU *cpu, uint16_t instruction){
+    uint16_t register_number = (0x0F00 & instruction) >> 8;
+    uint16_t value = 0x00FFu & instruction;
+    cpu->registers[register_number] += value;
+}
+
+
+void handle8(CPU *cpu, uint16_t instruction){
+
+}
+
+// 9xy0
+void skipIfRegisterNotEqualsRegister(CPU *cpu, uint16_t instruction){
+    if(0x000F & instruction != 0) return;
+    uint16_t register_x = (0x0F00u & instruction) >> 8;
+    uint16_t register_y = (0x00F0u & instruction) >> 4;
+
+    if(cpu->registers[register_x] != cpu->registers[register_y]) cpu->program_counter += 2;
+}
+
+// Annn - LD I, addr
+// Set I = nnn.
+void LoadRegisterI(CPU *cpu, uint16_t instruction){
+    uint16_t value = 0x0FFFu & instruction;
+    cpu->index_register = value;
+}
+
+// Bnnn - JP V0, addr
+// Jump to location nnn + V0.
+void jPToOffset(CPU *cpu, uint16_t instruction){
+    uint16_t value = 0x0FFFu & instruction;
+    uint16_t v0_value = cpu->registers[0];
+
+    cpu->program_counter = value + v0_value;
+
+
+}
+// Cxkk - RND Vx, byte
+// rand int from 0 to 255 AND it with kk store in register Vx
+void storeRandInRegister(CPU *cpu, uint16_t instruction){
+    int random = rand() % 256;
+    uint16_t value = 0x00FF & instruction;
+    uint16_t register_x = (0x0F00 & instruction) >> 8;
+
+    cpu->registers[register_x] = value + random;
+}
+// Dxyn
+// Display n-byte sprite starting at memory location I at (Vx, Vy)
+// Sprites xORed at existing screen 
+// If this causes sprites to be earsed Vf is set to 1, else 0
+// sprites wrap on overflow
+void readLoadSpriteBytes(CPU *cpu, uint16_t instruction){
+
+}
+
+
+
+void skipIfKeyPressed(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+} 
+void skipIfKeyNotPressed(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+} 
+
+void handleE(CPU *cpu, uint16_t instruction){
+    uint16_t x_value = (0x0F00 & instruction) >> 8;
+    uint16_t pivot = 0x00FF & instruction;
+    
+    switch (pivot)
+    {
+    case 0x009E:
+        skipIfKeyPressed(cpu, instruction, x_value);
+        break;
+    
+    case 0X00A1:
+    skipIfKeyNotPressed(cpu, instruction, x_value);
+        break;
+    }
+}
+
+// Fx07 - LD Vx, DT
+// Set Vx = delay timer value.
+void loadDelayTimerValue(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx0A LD Vx, K
+// Wait for a key press, store the value of the key in Vx.  
+// Everything stops until a key is pressed
+void waitForKeyPress(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx15 - LD DT, Vx
+// delay timer = value in dx
+void setDelayTimer(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx18 - LD ST, Vx
+// sound_timer  = value in dx
+void setSoundTimer(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx1E 
+// I = Vx + I
+void addRegisterToIndex(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx29 - LD F, Vx
+// The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
+void loadHexSprite(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx33
+// Store BCD representation of Vx in memory locations I, I+1, and I+2.
+void storeBCDInI(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx55
+// The interpreter reads values from memory starting at location I into registers V0 through Vx.
+void storeManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+// Fx65
+// The interpreter copies the values of registers V0 through Vx into memory, 
+// starting at the address in I.
+void loadManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_value){
+
+}
+
+void handleF(CPU *cpu, uint16_t instruction){
+    uint16_t x_value = (0x0F00 & instruction) >> 8;
+    uint16_t pivot = 0x00FF & instruction;
+
+    switch (pivot)
+    {
+    case 0x0007:
+        loadDelayTimerValue(cpu, instruction, x_value);
+        break;
+    case 0x000A:
+        waitForKeyPress(cpu, instruction, x_value);
+        break;
+    case 0x0015:
+        setDelayTimer(cpu, instruction, x_value);
+        break;
+    case 0x0018:
+        setSoundTimer(cpu, instruction, x_value);
+        break;
+    case 0x001E:
+        addRegisterToIndex(cpu, instruction, x_value);
+        break;
+    case 0x0029:
+        loadHexSprite(cpu, instruction, x_value);
+        break;
+    case 0x0033:
+    storeBCDInI(cpu, instruction, x_value);
+        break;
+    case 0x0055:
+        storeManyRegisters(cpu, instruction, x_value);
+        break;
+    case 0x0065:
+        loadManyRegisters(cpu, instruction, x_value);
+        break;
+    
+    default:
+        break;
+    }
+}

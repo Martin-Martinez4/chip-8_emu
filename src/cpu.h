@@ -16,7 +16,7 @@
 // 0x200-0xFFF: Instructions from the ROM will be stored starting at 0x200, 
 // and anything left after the ROM’s space is free to use.
 
-struct CPU   {
+typedef struct CPU {
     // 16 8 bit registers
     // v0 to vF
     uint8_t registers[16];
@@ -24,6 +24,7 @@ struct CPU   {
 
     // stores memory address 16-bit
     uint16_t index_register;
+
 
     // points to next instruction of course
     uint16_t program_counter;
@@ -33,12 +34,13 @@ struct CPU   {
 
     uint8_t stack_pointer;
 
-    uint8_t delayTimer;
-    uint8_t soundTimer;
+    uint8_t delay_timer;
+    uint8_t sound_timer;
    
     uint16_t opcode;
-};
+}CPU;
 
+// screen and input may have to be global
 struct inputs {
     // display is 64 px wide by 32 px tall
     // originally only on or off monochrome
