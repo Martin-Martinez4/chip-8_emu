@@ -48,7 +48,7 @@ void storeRandInRegister(CPU *cpu, uint16_t instruction);
 // Sprites xORewd at existing screen 
 // If this causes sprites to be earsed Vf is set to 1, else 0
 // sprites wrap on overflow
-void handleD(CPU *cpu, uint16_t instruction);
+void readLoadSpriteBytes(CPU *cpu, uint16_t instruction);
 void handleE(CPU *cpu, uint16_t instruction);
 void handleF(CPU *cpu, uint16_t instruction);
 
@@ -66,7 +66,7 @@ opcodeHandler handlers[16] = {
     LoadRegisterI,
     jPToOffset,
     storeRandInRegister,
-    handleD,
+    readLoadSpriteBytes,
     handleE,
     handleF,
 };
