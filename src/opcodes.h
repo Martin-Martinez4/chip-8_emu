@@ -10,8 +10,9 @@
 // will be properly situated in RAM.
 
 typedef void (*opcodeHandler)(CPU *cpu, uint16_t instruction);
+typedef void (*opcodeHandlerWithXY)(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
-void noOp(CPU *cpu, uint16_t instruction);
+void noOp(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // should change the name later to be more descriptive
 void handle0(CPU *cpu, uint16_t instruction);
@@ -73,46 +74,46 @@ opcodeHandler handlers[16] = {
 
 // 8xy0
 // set vx = vy
-void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction);
+void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // 8xy1
-void orRegisters(CPU *cpu, uint16_t instruction);
+void orRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // 8xy2
-void andRegisters(CPU *cpu, uint16_t instruction);
+void andRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // 8xy3
-void xorRegisters(CPU *cpu, uint16_t instruction);
+void xorRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // 8xy4
 // If result greater than 8 bits (255) Vf is set to 1 otherwise 0
 // store lower 8 bits of answer in Vx
-void carryAddRegisters(CPU *cpu, uint16_t instruction);
+void carryAddRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 //8xy5
 // Vx - Vy; Vx > Vy then Vf is 1
 // store answer in Vx
-void borrowSubRegisters(CPU *cpu, uint16_t instruction);
+void borrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // Set Vx = Vx SHR 1.
 // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. 
 // Then Vx is divided by 2.
-void shiftRight(CPU *cpu, uint16_t instruction);
+void shiftRight(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 //8xy7
 // Vy - Vx; Vy > Vx then Vf is 1
 // store answer in Vx
-void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction);
+void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 // 8xyE
 // Set Vx = Vx SHL 1.
 // If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. 
 // Then Vx is multiplied by 2.
-void shiftLeft(CPU *cpu, uint16_t instruction);
+void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index);
 
 
 
-opcodeHandler _8xy_handlers[16] = {
+opcodeHandlerWithXY _8xy_handlers[16] = {
     loadRegisterValueFromRegister,
     orRegisters,
     andRegisters,

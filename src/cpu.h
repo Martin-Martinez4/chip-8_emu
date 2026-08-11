@@ -23,6 +23,7 @@ typedef struct CPU {
     uint8_t memory[4096];
 
     // stores memory address 16-bit
+    // points to a place in 4kb memory
     uint16_t index_register;
 
 

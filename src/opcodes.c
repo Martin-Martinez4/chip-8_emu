@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "opcodes.h"
 
-void noOp(CPU *cpu, uint16_t instruction){
+void noOp(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     return;
 }
 
@@ -29,6 +29,8 @@ void handle0(CPU *cpu, uint16_t instruction){
         case 0x000E:
             ret(cpu, instruction);
             break;
+        default:
+            noOp(cpu, instruction, 0, 0);
     }
 }
 // 1nnn
@@ -49,7 +51,7 @@ void callAddr(CPU *cpu, uint16_t instruction){
 void skipIfRegisterEqualsValue(CPU *cpu, uint16_t instruction){
     uint16_t value = 0x00FFu & instruction;
     uint16_t register_number = (0x0F00u & instruction) >> 8;
-    if(cpu->registers[register_number] == value){cpu->program_counter + 2;}
+    if(cpu->registers[register_number] == value){cpu->program_counter += 2;}
 }
 // 4xkk
 void skipIfRegisterNotEqualsValue(CPU *cpu, uint16_t instruction){
@@ -85,50 +87,111 @@ void addValueToRegister(CPU *cpu, uint16_t instruction){
 
 // 8xy0
 // set vx = vy
-void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction){}
+void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    cpu->registers[x_index] = cpu->registers[y_index];
+}
 
 // 8xy1
-void orRegisters(CPU *cpu, uint16_t instruction){}
+void orRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    cpu->registers[x_index] = cpu->registers[x_index] | cpu->registers[y_index];
+}
 
 // 8xy2
-void andRegisters(CPU *cpu, uint16_t instruction){}
+void andRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    cpu->registers[x_index] = cpu->registers[x_index] & cpu->registers[y_index];
+}
 
 // 8xy3
-void xorRegisters(CPU *cpu, uint16_t instruction){}
+void xorRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    cpu->registers[x_index] = cpu->registers[x_index] ^ cpu->registers[y_index];
+}
 
 // 8xy4
 // If result greater than 8 bits (255) Vf is set to 1 otherwise 0
 // store lower 8 bits of answer in Vx
-void carryAddRegisters(CPU *cpu, uint16_t instruction){}
+void carryAddRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    uint16_t value = cpu->registers[x_index] + cpu->registers[y_index];
+    if(value > 255){
+        cpu->registers[0x00F] = 1;
+        value = value & 0x00FF;
+    }else{
+        cpu->registers[0x00F] = 0;
+    }
+
+    cpu->registers[x_index] = value;
+}
 
 //8xy5
-// Vx - Vy; Vx > Vy then Vf is 1
+// Vx - Vy; Vx > Vy then Vf is 1 (1 = not borrow)
 // store answer in Vx
-void borrowSubRegisters(CPU *cpu, uint16_t instruction){}
+void borrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    uint16_t x_value =  cpu->registers[x_index];
+    uint16_t y_value = cpu->registers[y_index];
+
+    if(x_value > y_value){
+        cpu->registers[0x00F] = 1;
+    }else{
+        cpu->registers[0x00F] = 0;
+    }
+
+    cpu->registers[x_index] = x_value - y_value;
+
+}
 
 // Set Vx = Vx SHR 1.
 // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. 
 // Then Vx is divided by 2.
-void shiftRight(CPU *cpu, uint16_t instruction){}
+void shiftRight(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    uint16_t value = cpu->registers[x_index];
+    cpu->registers[0x000F] = value % 2;
+    cpu->registers[x_index] = value /2;
+}
 
 //8xy7
 // Vy - Vx; Vy > Vx then Vf is 1
 // store answer in Vx
-void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction){}
+void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    uint16_t x_value =  cpu->registers[x_index];
+    uint16_t y_value = cpu->registers[y_index];
+
+    if(y_value > x_value){
+        cpu->registers[0x00F] = 1;
+    }else{
+        cpu->registers[0x00F] = 0;
+    }
+
+    cpu->registers[x_index] = y_value - x_value;
+
+}
 
 // 8xyE
 // Set Vx = Vx SHL 1.
 // If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. 
 // Then Vx is multiplied by 2.
-void shiftLeft(CPU *cpu, uint16_t instruction){}
+void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    uint16_t x_value =  cpu->registers[x_index];
+    uint16_t msb = (0xF000 & x_value) >> 12;
+    if(msb == 1){
+         cpu->registers[0x00F] = 1;
+    }else{
+        cpu->registers[0x00F] = 0;
+    }
+
+    cpu->registers[x_index] = x_value * 2;
+}
 
 void handle8(CPU *cpu, uint16_t instruction){
+    uint16_t lsb = (0x000F & instruction);
+    uint16_t x_index = (0x0F00 & instruction) >> 8;
+    uint16_t y_index = (0x00F0 & instruction) >> 4;
+
+    _8xy_handlers[lsb](cpu, instruction, x_index, y_index);
 
 }
 
 // 9xy0
 void skipIfRegisterNotEqualsRegister(CPU *cpu, uint16_t instruction){
-    if(0x000F & instruction != 0) return;
+    if((0x000F & instruction) != 0) return;
     uint16_t register_x = (0x0F00u & instruction) >> 8;
     uint16_t register_y = (0x00F0u & instruction) >> 4;
 
@@ -167,122 +230,133 @@ void storeRandInRegister(CPU *cpu, uint16_t instruction){
 // If this causes sprites to be earsed Vf is set to 1, else 0
 // sprites wrap on overflow
 void readLoadSpriteBytes(CPU *cpu, uint16_t instruction){
-
+    // todo
 }
 
 
 
-void skipIfKeyPressed(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void skipIfKeyPressed(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    // todo
 } 
-void skipIfKeyNotPressed(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void skipIfKeyNotPressed(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    // todo
 } 
 
 void handleE(CPU *cpu, uint16_t instruction){
-    uint16_t x_value = (0x0F00 & instruction) >> 8;
+    uint16_t x_index = (0x0F00 & instruction) >> 8;
     uint16_t pivot = 0x00FF & instruction;
     
     switch (pivot)
     {
     case 0x009E:
-        skipIfKeyPressed(cpu, instruction, x_value);
+        skipIfKeyPressed(cpu, instruction, x_index);
         break;
     
     case 0X00A1:
-    skipIfKeyNotPressed(cpu, instruction, x_value);
+    skipIfKeyNotPressed(cpu, instruction, x_index);
         break;
     }
 }
 
 // Fx07 - LD Vx, DT
 // Set Vx = delay timer value.
-void loadDelayTimerValue(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void loadDelayTimerValue(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    cpu->registers[x_index] = cpu->delay_timer;
 }
 
 // Fx0A LD Vx, K
 // Wait for a key press, store the value of the key in Vx.  
 // Everything stops until a key is pressed
-void waitForKeyPress(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void waitForKeyPress(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    // todo
 }
 
 // Fx15 - LD DT, Vx
 // delay timer = value in dx
-void setDelayTimer(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void setDelayTimer(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    cpu->delay_timer = cpu->registers[x_index];
 }
 
 // Fx18 - LD ST, Vx
 // sound_timer  = value in dx
-void setSoundTimer(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void setSoundTimer(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    cpu->sound_timer = cpu->registers[x_index];
 }
 
 // Fx1E 
 // I = Vx + I
-void addRegisterToIndex(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void addRegisterToIndex(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    cpu->index_register += cpu->registers[x_index];
 }
 
 // Fx29 - LD F, Vx
 // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
-void loadHexSprite(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+// hex sprite represented by 5 uint8_t numbers
+void loadHexSprite(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    cpu->index_register = cpu->registers[x_index] * 5;
 }
 
 // Fx33
 // Store BCD representation of Vx in memory locations I, I+1, and I+2.
-void storeBCDInI(CPU *cpu, uint16_t instruction, uint16_t x_value){
-
+void storeBCDInI(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    // todo
 }
 
 // Fx55
 // The interpreter reads values from memory starting at location I into registers V0 through Vx.
-void storeManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_value){
+void storeManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    uint16_t I = cpu->index_register;
+    uint16_t stopping_point = cpu->registers[x_index];
 
+    for( int i = 0; i <= stopping_point; i++ ){
+        cpu->registers[i] = cpu->memory[I + i];
+    }
 }
 
 // Fx65
 // The interpreter copies the values of registers V0 through Vx into memory, 
 // starting at the address in I.
-void loadManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_value){
+void loadManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
+    uint16_t I = cpu->index_register;
+    uint16_t stopping_point = cpu->registers[x_index];
 
+    for( int i = 0; i <= stopping_point; i++ ){
+        cpu->memory[ I + i] = cpu->registers[i];
+    }
 }
 
 void handleF(CPU *cpu, uint16_t instruction){
-    uint16_t x_value = (0x0F00 & instruction) >> 8;
+    uint16_t x_index = (0x0F00 & instruction) >> 8;
     uint16_t pivot = 0x00FF & instruction;
 
     switch (pivot)
     {
     case 0x0007:
-        loadDelayTimerValue(cpu, instruction, x_value);
+        loadDelayTimerValue(cpu, instruction, x_index);
         break;
     case 0x000A:
-        waitForKeyPress(cpu, instruction, x_value);
+        waitForKeyPress(cpu, instruction, x_index);
         break;
     case 0x0015:
-        setDelayTimer(cpu, instruction, x_value);
+        setDelayTimer(cpu, instruction, x_index);
         break;
     case 0x0018:
-        setSoundTimer(cpu, instruction, x_value);
+        setSoundTimer(cpu, instruction, x_index);
         break;
     case 0x001E:
-        addRegisterToIndex(cpu, instruction, x_value);
+        addRegisterToIndex(cpu, instruction, x_index);
         break;
     case 0x0029:
-        loadHexSprite(cpu, instruction, x_value);
+        loadHexSprite(cpu, instruction, x_index);
         break;
     case 0x0033:
-    storeBCDInI(cpu, instruction, x_value);
+    storeBCDInI(cpu, instruction, x_index);
         break;
     case 0x0055:
-        storeManyRegisters(cpu, instruction, x_value);
+        storeManyRegisters(cpu, instruction, x_index);
         break;
     case 0x0065:
-        loadManyRegisters(cpu, instruction, x_value);
+        loadManyRegisters(cpu, instruction, x_index);
         break;
     
     default:
