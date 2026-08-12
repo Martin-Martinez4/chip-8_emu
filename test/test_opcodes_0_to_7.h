@@ -3,6 +3,6 @@
 
 #include "cpu.h"
 
-void opcodes_1_tests();
+void opcodes_0_to_7_tests();
 
 #endif

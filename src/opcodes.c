@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "opcodes.h"
 
+
 void noOp(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     return;
 }
@@ -92,6 +93,7 @@ void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction, uint16_t x_in
 }
 
 // 8xy1
+
 void orRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     cpu->registers[x_index] = cpu->registers[x_index] | cpu->registers[y_index];
 }
@@ -362,4 +364,10 @@ void handleF(CPU *cpu, uint16_t instruction){
     default:
         break;
     }
+}
+
+void executeInstruction(CPU* cpu, short instruction){
+    uint16_t msb = (0xF000 & instruction) >> 12;
+
+    handlers[msb](cpu, instruction);
 }

@@ -62,6 +62,10 @@ struct inputs {
     uint8_t keypad[16];
 };
 
+CPU* createCPU();
+
+// print out the stack content as a string
+char* listStackContents(CPU* cpu);
 
 
 #endif

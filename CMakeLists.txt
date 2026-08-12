@@ -57,7 +57,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC )
 
 set(test_sources
     ${CMAKE_SOURCE_DIR}/test/main.c
-    ${CMAKE_SOURCE_DIR}/test/test_opcodes_1.c
+    ${CMAKE_SOURCE_DIR}/test/test_opcodes_0_to_7.c
+    ${CMAKE_SOURCE_DIR}/test/test_cpu_helpers.c
 )
 
 set(test_source_dirs
