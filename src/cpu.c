@@ -1,5 +1,8 @@
 #include "cpu.h"
 #include "digit_sprites.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 CPU* createCPU(){
     CPU* cpu = malloc(sizeof(CPU));
@@ -20,25 +23,52 @@ CPU* createCPU(){
 
 // print out the stack content as a string
 char* listStackContents(CPU* cpu){
-
-    char buffer[32];
+    char buffer[128];
     size_t len = 0;
 
-    for(int i = cpu->stack_pointer; i >= 0; i--){
-        buffer[len++] = cpu->stack[i];
+    for(int i = 0; i <= cpu->stack_pointer; i++){
+        if(i < 15){
 
-        if(i < 15 ){
-            buffer[len++] = ' ';
+            len += snprintf(
+                buffer + len,
+                sizeof(buffer) - len,
+                "%04X ",
+                cpu->stack[i]
+            );    
+        }else{
+            len += snprintf(
+                buffer + len,
+                sizeof(buffer) - len,
+                "%04X",
+                cpu->stack[i]
+            );    
+            
         }
-
-        
     }
 
-    for(int i = cpu->stack_pointer+1; i < 15; i++ ){
-        buffer[len++] = '-';
-        buffer[len++] = ' ';
+     for (int i = cpu->stack_pointer + 1; i < 16; i++) {
+
+        if(i < 15){
+            len += snprintf(
+                buffer + len,
+                sizeof(buffer) - len,
+                "---- "
+            );
+        }else{
+            
+            len += snprintf(
+                buffer + len,
+                sizeof(buffer) - len,
+                "----"
+            );
+        }
     }
 
-    return buffer;
+    char* result = malloc(len + 1);
+    if (result == NULL){
+        return NULL;
+    }
+    memcpy(result, buffer, len + 1);
+    return result;
 }
 

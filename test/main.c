@@ -1,6 +1,7 @@
+#include "tests.h"
 #include <stdio.h>
 
 int main(int argc, char* argv[]){
-    printf("nothing yet");
+    runCPUHelpers();
     return 0;
 }

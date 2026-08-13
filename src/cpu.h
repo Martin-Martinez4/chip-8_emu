@@ -33,7 +33,7 @@ typedef struct CPU {
     // 16-level stack
     uint16_t stack[16];
 
-    uint8_t stack_pointer;
+    int8_t stack_pointer;
 
     uint8_t delay_timer;
     uint8_t sound_timer;
