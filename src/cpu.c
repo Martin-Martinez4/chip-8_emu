@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 CPU* createCPU(){
     CPU* cpu = malloc(sizeof(CPU));
@@ -70,5 +71,31 @@ char* listStackContents(CPU* cpu){
     }
     memcpy(result, buffer, len + 1);
     return result;
+}
+
+// invetigate:
+// Everything is started zero'd out should 
+// untouched regions of memory should still equal
+int cpuCpm(CPU* cpu1, CPU* cpu2){
+    int diffs = 0;
+
+    diffs += cpu1->index_register != cpu2->index_register;
+    diffs += cpu1->program_counter != cpu2->program_counter;
+    diffs += cpu1->stack_pointer != cpu2->stack_pointer;
+    diffs += cpu1->delay_timer != cpu2->delay_timer;
+    diffs += cpu1->sound_timer != cpu2->sound_timer;
+    diffs += cpu1->opcode != cpu2->opcode;
+
+    for(int i = 0; i < 16; i++){
+        diffs += cpu1->registers[i] != cpu2->registers[i];
+    }
+    for(int i = 0; i < 16; i++){
+        diffs += cpu1->stack[i] != cpu2->stack[i];
+    }
+    for(int i = 0; i < 4096; i++){
+        diffs += cpu1->memory[i] != cpu2->memory[i];
+    }
+
+    return diffs;
 }
 

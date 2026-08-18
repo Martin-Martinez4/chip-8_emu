@@ -2,6 +2,9 @@
 #include "test_helpers.h"
 #include <string.h>
 
+#include "cpu.h"
+
+
 void testListStackContents(){
     typedef struct testCase {
         char* test_name;

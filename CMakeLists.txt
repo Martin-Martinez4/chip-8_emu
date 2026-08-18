@@ -12,6 +12,7 @@ project(chip8_emu LANGUAGES C)
 set(sources
 ${CMAKE_SOURCE_DIR}/src/opcodes.c
 ${CMAKE_SOURCE_DIR}/src/cpu.c
+${CMAKE_SOURCE_DIR}/src/error_helpers.c
 )
 
 # May not be needed for tests so it is separate
@@ -58,6 +59,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC )
 set(test_sources
     ${CMAKE_SOURCE_DIR}/test/main.c
     ${CMAKE_SOURCE_DIR}/test/test_opcodes_0_to_7.c
+    ${CMAKE_SOURCE_DIR}/test/test_opcodes_8.c
     ${CMAKE_SOURCE_DIR}/test/test_cpu_helpers.c
 )
 

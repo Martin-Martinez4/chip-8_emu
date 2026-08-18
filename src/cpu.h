@@ -66,6 +66,6 @@ CPU* createCPU();
 
 // print out the stack content as a string
 char* listStackContents(CPU* cpu);
-
+int cpuCpm(CPU* cpu1, CPU* cpu2);
 
 #endif

@@ -54,7 +54,7 @@ void readLoadSpriteBytes(CPU *cpu, uint16_t instruction);
 void handleE(CPU *cpu, uint16_t instruction);
 void handleF(CPU *cpu, uint16_t instruction);
 
-opcodeHandler handlers[16] = {
+static opcodeHandler handlers[16] = {
     handle0,
     jPAddr,
     callAddr,
@@ -114,7 +114,7 @@ void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_inde
 
 
 
-opcodeHandlerWithXY _8xy_handlers[16] = {
+static opcodeHandlerWithXY _8xy_handlers[16] = {
     loadRegisterValueFromRegister,
     orRegisters,
     andRegisters,
@@ -140,6 +140,6 @@ opcodeHandlerWithXY _8xy_handlers[16] = {
     noOp
 };
 
-void executeInstruction(short instruction);
+void executeInstruction(CPU* cpu, short instruction);
 
 #endif

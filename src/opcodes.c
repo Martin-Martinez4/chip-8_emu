@@ -1,12 +1,20 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "opcodes.h"
+#include "error_helpers.h"
 
 
 void noOp(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     return;
 }
 
+// todo: Figure out error stuff
 void ret(CPU *cpu, uint16_t instruction){
+    if(cpu->stack_pointer <= -1){
+        logCPUErrorAndExit("Stack Underflow instruction", instruction);
+        return;
+    }
+
     cpu->program_counter = cpu->stack[cpu->stack_pointer];
     cpu->stack_pointer -= 1;
 } 
@@ -18,8 +26,8 @@ void cls(CPU *cpu, uint16_t instruction){
 // shift right 12 to get first number of opcode
 // should change the name later to be more descriptive
 void handle0(CPU *cpu, uint16_t instruction){
-    if(instruction > 0x00EEu) return;
-    if((0x00F0 & instruction) != 0x00E0) return;
+    if(instruction > 0x00EEu) {noOp(cpu, instruction, 0, 0); return;}
+    if((0x00F0 & instruction) != 0x00E0){noOp(cpu, instruction, 0, 0); return;}
 
     uint16_t pivot = 0x000F & instruction;
 
@@ -42,6 +50,10 @@ void jPAddr(CPU *cpu, uint16_t instruction){
 }
 // 2nnn
 void callAddr(CPU *cpu, uint16_t instruction){
+    if(cpu->stack_pointer > 15){
+        logCPUErrorAndExit("Stack Overflow instruction", instruction);
+    }
+
     cpu->stack_pointer++;
     cpu->stack[cpu->stack_pointer] = cpu->program_counter;
     uint16_t value = 0x0FFFu & instruction;
@@ -368,6 +380,5 @@ void handleF(CPU *cpu, uint16_t instruction){
 
 void executeInstruction(CPU* cpu, short instruction){
     uint16_t msb = (0xF000 & instruction) >> 12;
-
     handlers[msb](cpu, instruction);
 }
