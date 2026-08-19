@@ -105,7 +105,6 @@ void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction, uint16_t x_in
 }
 
 // 8xy1
-
 void orRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     cpu->registers[x_index] = cpu->registers[x_index] | cpu->registers[y_index];
 }

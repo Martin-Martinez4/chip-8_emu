@@ -6,7 +6,7 @@ void runOpcodes8Test(){
 
     testCases tcs = {
         // .cases_count = 16,
-        .cases_count = 4,
+        .cases_count = 11,
         .test_cases = (struct testCase[]){
 
             // 8xy0
@@ -101,15 +101,191 @@ void runOpcodes8Test(){
                 }
             },
 
-            // {},
-            // {},
+            {
+                .test_name =  "Vx = Vx & Vy opcode test - single instruction",
+                .starting_CPU_state = {
+                    .registers = {2, 202}
+                },
+                .step_count = 1,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 2}
+                        },
+                        .instruction = 0x8102
+                    }
+                }
+            },
+            {
+                .test_name = "Vx = Vx & Vy opcode test - multiple instruction",
+                .starting_CPU_state = {
+                    .registers = {2, 202, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                },
+                .step_count = 4,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 2, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x8102
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 2, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x8012
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 2, 255, 1, 1, 0, 0, 1, 1, 15, 2, 15}
+                        },
+                        .instruction = 0x8A02
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                             .registers = {2, 2, 255, 1, 1, 0, 0, 1, 1, 15, 2, 15}
+                        },
+                        .instruction = 0x85B2
+                    }
+                }
+            },
+            {
+                .test_name =  "Vx = Vx ^ Vy opcode test - single instruction",
+                .starting_CPU_state = {
+                    .registers = {2, 202}
+                },
+                .step_count = 1,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 200}
+                        },
+                        .instruction = 0x8103
+                    }
+                }
+            },
+            {
+                .test_name = "Vx = Vx ^ Vy opcode test - multiple instruction",
+                .starting_CPU_state = {
+                    .registers = {2, 202, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                },
+                .step_count = 4,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 200, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x8103
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                            .registers = {202, 200, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x8013
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                            .registers = {202, 199, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x81B3
+                    }, 
+                    {
+                        .expected_CPU_state = {
+                             .registers = {202, 199, 240, 1, 1, 0, 0, 1, 1, 15, 15, 15}
+                        },
+                        .instruction = 0x82B3
+                    }
+                }
+            },
 
-            // {},
-            // {},
-
-            // {},
-            // {},
-            // {},
+            {
+                .test_name = "Vx = Vx + Vy with Carry opcode test - single instruction no carry",
+                .starting_CPU_state = {
+                    .registers = {2, 200, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15,0, 0, 0, 0}
+                },
+                .step_count = 1,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 215, 255, 1, 1, 0, 0, 1, 1, 15, 15, 15,0, 0, 0, 0}
+                        },
+                        .instruction = 0x81B4
+                    }
+                }
+            },
+            {
+                .test_name = "Vx = Vx + Vy with Carry opcode test - single instruction carry",
+                .starting_CPU_state = {
+                    .registers = {2, 200, 255, 1, 1, 0, 0, 1, 1, 15, 15, 56,0, 0, 0, 0}
+                },
+                .step_count = 1,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 0, 255, 1, 1, 0, 0, 1, 1, 15, 15, 56,0, 0, 0, 1}
+                        },
+                        .instruction = 0x81B4
+                    }
+                }
+            },
+            {
+                .test_name = "Vx = Vx + Vy with Carry opcode test - multiple instructions carry and no carry",
+                .starting_CPU_state = {
+                    .registers = {2, 200, 255, 1, 1, 0, 0, 1, 1, 15, 15, 56,0, 0, 0, 0}
+                },
+                .step_count = 8,
+                .steps = (testStep[]){
+                    {
+                        .expected_CPU_state = {
+                            .registers = {2, 0, 255, 1, 1, 0, 0, 1, 1, 15, 15, 56,0, 0, 0, 1}
+                        },
+                        .instruction = 0x81B4
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 255, 1, 1, 0, 0, 1, 1, 15, 15, 56,0, 0, 0, 0}
+                        },
+                        .instruction = 0x8034
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 255, 1, 1, 0, 0, 1, 1, 18, 15, 56,0, 0, 0, 0}
+                        },
+                        .instruction = 0x8904
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 55, 1, 1, 0, 0, 1, 1, 18, 15, 56,0, 0, 0, 1}
+                        },
+                        .instruction = 0x82B4
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 56, 1, 1, 0, 0, 1, 1, 18, 15, 56,0, 0, 0, 0}
+                        },
+                        .instruction = 0x8234
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 112, 1, 1, 0, 0, 1, 1, 18, 15, 56,0, 0, 0, 0}
+                        },
+                        .instruction = 0x82B4
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 224, 1, 1, 0, 0, 1, 1, 18, 15, 56,0, 0, 0, 0}
+                        },
+                        .instruction = 0x8224
+                    },
+                    {
+                        .expected_CPU_state = {
+                            .registers = {3, 0, 224, 1, 1, 0, 0, 1, 1, 18, 15, 24,0, 0, 0, 1}
+                        },
+                        .instruction = 0x8B24
+                    },
+                  
+                }
+            },
 
             // {},
             // {},
