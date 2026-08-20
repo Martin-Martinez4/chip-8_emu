@@ -151,13 +151,14 @@ void borrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16
 
 }
 
+// 8xy6
 // Set Vx = Vx SHR 1.
 // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. 
 // Then Vx is divided by 2.
 void shiftRight(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     uint16_t value = cpu->registers[x_index];
     cpu->registers[0x000F] = value % 2;
-    cpu->registers[x_index] = value /2;
+    cpu->registers[x_index] = value / 2;
 }
 
 //8xy7
@@ -183,7 +184,7 @@ void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index,
 // Then Vx is multiplied by 2.
 void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     uint16_t x_value =  cpu->registers[x_index];
-    uint16_t msb = (0xF000 & x_value) >> 12;
+    uint16_t msb = (x_value & 0x80) >> 7;
     if(msb == 1){
          cpu->registers[0x00F] = 1;
     }else{
