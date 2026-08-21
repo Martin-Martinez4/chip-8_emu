@@ -13,6 +13,7 @@ set(sources
 ${CMAKE_SOURCE_DIR}/src/opcodes.c
 ${CMAKE_SOURCE_DIR}/src/cpu.c
 ${CMAKE_SOURCE_DIR}/src/error_helpers.c
+${CMAKE_SOURCE_DIR}/src/graphics.c
 )
 
 # May not be needed for tests so it is separate
@@ -21,6 +22,7 @@ ${CMAKE_SOURCE_DIR}/src/main.c
 )
 
 
+add_subdirectory(vendored/SDL3 EXCLUDE_FROM_ALL)
 
 # =============================================
 # Executable Target
@@ -38,7 +40,6 @@ set(source_dirs
     ${CMAKE_SOURCE_DIR}/src
 )
 
-add_subdirectory(vendored/SDL3 EXCLUDE_FROM_ALL)
 
 target_include_directories(
     ${CMAKE_PROJECT_NAME} PUBLIC
@@ -52,7 +53,7 @@ target_include_directories(
 # Link Libs
 # =============================================
 # Will have more later
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3 )
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC SDL3::SDL3 )
 
 
 # --------------------------------------------
@@ -70,6 +71,7 @@ set(test_source_dirs
     ${CMAKE_SOURCE_DIR}/test
 )
 
+
 add_executable(${CMAKE_PROJECT_NAME}_test 
     ${sources} 
     ${test_sources}
@@ -79,5 +81,8 @@ target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC
     ${source_dirs} 
     ${test_source_dirs}
 )
+
+target_link_libraries(${CMAKE_PROJECT_NAME}_test PUBLIC SDL3::SDL3 )
+
 
 

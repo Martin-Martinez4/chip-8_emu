@@ -1,9 +1,11 @@
-#include "cpu.h"
-#include "digit_sprites.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+
+#include "cpu.h"
+#include "digit_sprites.h"
+
 
 CPU* createCPU(){
     CPU* cpu = malloc(sizeof(CPU));
@@ -20,6 +22,25 @@ CPU* createCPU(){
     }
 
     return cpu;
+}
+
+inputs* createInputs(){
+    inputs* ins = malloc(sizeof(inputs));
+    for(size_t i = 0; i < 16; i++){
+        ins->keypad[i] = DEFAULT_BINDINGS[i];
+    }
+
+    memset(ins->video, 0, sizeof ins->video);
+
+    return ins;
+}
+
+chip8* createChip8(){
+    chip8* emu = malloc(sizeof(chip8));
+    emu->cpu = createCPU();
+    emu->inputs = createInputs();
+
+    return emu;
 }
 
 // print out the stack content as a string

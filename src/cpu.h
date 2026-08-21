@@ -2,6 +2,8 @@
 #define chip8_emu_H_CPU
 
 #include <stdint.h>
+#include "consts.h"
+
 
 typedef enum {
     CPU_RUNNING,
@@ -50,22 +52,32 @@ typedef struct CPU {
     uint16_t opcode;
 
     CpuState CPU_state;
+
+
 }CPU;
 
 // screen and input may have to be global
-struct inputs {
+typedef struct inputs {
     // display is 64 px wide by 32 px tall
     // originally only on or off monochrome
-    uint32_t video[64 * 32];
+    int video[WINDOW_DIMENSIONS];
 
  
-    uint8_t keypad[16];
-};
+    int keypad[16];
+}inputs;
+
+typedef struct chip8 {
+    CPU* cpu;
+    inputs* inputs;
+}chip8;
+
 
 CPU* createCPU();
+chip8* createChip8();
 
 // print out the stack content as a string
 char* listStackContents(CPU* cpu);
 int cpuCpm(CPU* cpu1, CPU* cpu2);
+
 
 #endif
