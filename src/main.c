@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL3/SDL.h>
 
 /*
     Keypad       Keyboard
@@ -14,7 +15,6 @@
     +-+-+-+-+    +-+-+-+-+
 */
 
-// uint8_t keyboard_keys[16] = {1, 2, 3, 4, "Q", "W"}
 
 int main(int argc, char* argv[]){
     // seed rand

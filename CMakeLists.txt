@@ -37,6 +37,9 @@ endif()
 set(source_dirs
     ${CMAKE_SOURCE_DIR}/src
 )
+
+add_subdirectory(vendored/SDL3 EXCLUDE_FROM_ALL)
+
 target_include_directories(
     ${CMAKE_PROJECT_NAME} PUBLIC
     ${source_dirs}
@@ -49,7 +52,7 @@ target_include_directories(
 # Link Libs
 # =============================================
 # Will have more later
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC )
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3 )
 
 
 # --------------------------------------------

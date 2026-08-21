@@ -16,7 +16,7 @@ void testCPUStatesAfterInstruction(testCases* testCases){
 
             
 
-            executeInstruction(result_CPU_state, step.instruction);
+            executeInstruction(result_CPU_state, step.instruction, false, 0);
             
 
             CPU* expected_CPU_state = &(tc.steps[t].expected_CPU_state);
