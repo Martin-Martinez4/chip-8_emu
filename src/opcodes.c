@@ -312,6 +312,7 @@ void loadHexSprite(CPU *cpu, uint16_t instruction, uint16_t x_index){
 
 // Fx33
 // Store BCD representation of Vx in memory locations I, I+1, and I+2.
+// always 3 places
 void storeBCDInI(CPU *cpu, uint16_t instruction, uint16_t x_index){
     // todo
 }
@@ -378,7 +379,16 @@ void handleF(CPU *cpu, uint16_t instruction){
     }
 }
 
-void executeInstruction(CPU* cpu, short instruction){
+// add bool key_pressed and key
+void executeInstruction(CPU* cpu, short instruction, bool key_pressed, int key){
+    if(cpu->CPU_state == CPU_WAIT_FOR_INPUT){
+        if(key_pressed){
+            cpu->registers[cpu->wait_register] = key;
+            cpu->CPU_state = CPU_RUNNING;
+        }
+
+        return;
+    }
     uint16_t msb = (0xF000 & instruction) >> 12;
     handlers[msb](cpu, instruction);
 }

@@ -2,6 +2,7 @@
 #define chip8_emu_H_OPCODES
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "cpu.h"
 
 
@@ -140,6 +141,6 @@ static opcodeHandlerWithXY _8xy_handlers[16] = {
     noOp
 };
 
-void executeInstruction(CPU* cpu, short instruction);
+void executeInstruction(CPU* cpu, short instruction, bool key_pressed, int key);
 
 #endif
