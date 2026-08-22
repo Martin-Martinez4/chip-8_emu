@@ -4,12 +4,13 @@
 #include "error_helpers.h"
 
 
-void noOp(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void noOp(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     return;
 }
 
 // todo: Figure out error stuff
-void ret(CPU *cpu, uint16_t instruction){
+void ret(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     if(cpu->stack_pointer <= -1){
         logCPUErrorAndExit("Stack Underflow instruction", instruction);
         return;
@@ -19,37 +20,41 @@ void ret(CPU *cpu, uint16_t instruction){
     cpu->stack_pointer -= 1;
 } 
 
-void cls(CPU *cpu, uint16_t instruction){
-
+void cls(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
+    cpu->video_should_clear = true;
 } 
 
 // shift right 12 to get first number of opcode
 // should change the name later to be more descriptive
-void handle0(CPU *cpu, uint16_t instruction){
-    if(instruction > 0x00EEu) {noOp(cpu, instruction, 0, 0); return;}
-    if((0x00F0 & instruction) != 0x00E0){noOp(cpu, instruction, 0, 0); return;}
+void handle0(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
+    if(instruction > 0x00EEu) {noOp(emu, instruction, 0, 0); return;}
+    if((0x00F0 & instruction) != 0x00E0){noOp(emu, instruction, 0, 0); return;}
 
     uint16_t pivot = 0x000F & instruction;
 
     switch(pivot) {
         case 0:
-            cls(cpu, instruction);
+            cls(emu, instruction);
             break;
         case 0x000E:
-            ret(cpu, instruction);
+            ret(emu, instruction);
             break;
         default:
-            noOp(cpu, instruction, 0, 0);
+            noOp(emu, instruction, 0, 0);
     }
 }
 // 1nnn
-void jPAddr(CPU *cpu, uint16_t instruction){
+void jPAddr(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     // 0x0FFFu & instruction gets last 12 bits
     uint16_t value = 0x0FFFu & instruction;
     cpu->program_counter = value;
 }
 // 2nnn
-void callAddr(CPU *cpu, uint16_t instruction){
+void callAddr(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     if(cpu->stack_pointer > 15){
         logCPUErrorAndExit("Stack Overflow instruction", instruction);
     }
@@ -61,21 +66,23 @@ void callAddr(CPU *cpu, uint16_t instruction){
 }
 // 3xkk
 // increasing program counter by 2 effectively skips one instruction
-void skipIfRegisterEqualsValue(CPU *cpu, uint16_t instruction){
+void skipIfRegisterEqualsValue(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t value = 0x00FFu & instruction;
     uint16_t register_number = (0x0F00u & instruction) >> 8;
     if(cpu->registers[register_number] == value){cpu->program_counter += 2;}
 }
 // 4xkk
-void skipIfRegisterNotEqualsValue(CPU *cpu, uint16_t instruction){
+void skipIfRegisterNotEqualsValue(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t value = 0x00FFu & instruction;
     uint16_t register_number = (0x0F00u & instruction) >> 8;
     if(cpu->registers[register_number] != value){cpu->program_counter += 2;}
 }
 // 5xy0
-void skipIfRegisterEqualsRegister(CPU *cpu, uint16_t instruction){
-
+void skipIfRegisterEqualsRegister(chip8 *emu, uint16_t instruction){
     if((0x000F & instruction) != 0) return;
+    CPU *cpu = emu->cpu;
 
     uint16_t register_x = (0x0F00u & instruction) >> 8;
     uint16_t register_y = (0x00F0u & instruction) >> 4;
@@ -83,7 +90,8 @@ void skipIfRegisterEqualsRegister(CPU *cpu, uint16_t instruction){
     if(cpu->registers[register_x] == cpu->registers[register_y]) cpu->program_counter += 2;
 }
 // 6xkk
-void loadValueIntoRegister(CPU *cpu, uint16_t instruction){
+void loadValueIntoRegister(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t register_number = (0x0F00 & instruction) >> 8;
     uint16_t value = 0x00FFu & instruction;
 
@@ -91,7 +99,8 @@ void loadValueIntoRegister(CPU *cpu, uint16_t instruction){
 }
 // 7xkk - ADD Vx, byte
 // Set Vx = Vx + kk.
-void addValueToRegister(CPU *cpu, uint16_t instruction){
+void addValueToRegister(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t register_number = (0x0F00 & instruction) >> 8;
     uint16_t value = 0x00FFu & instruction;
     cpu->registers[register_number] += value;
@@ -100,29 +109,34 @@ void addValueToRegister(CPU *cpu, uint16_t instruction){
 
 // 8xy0
 // set vx = vy
-void loadRegisterValueFromRegister(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void loadRegisterValueFromRegister(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->registers[y_index];
 }
 
 // 8xy1
-void orRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void orRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->registers[x_index] | cpu->registers[y_index];
 }
 
 // 8xy2
-void andRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void andRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->registers[x_index] & cpu->registers[y_index];
 }
 
 // 8xy3
-void xorRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void xorRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->registers[x_index] ^ cpu->registers[y_index];
 }
 
 // 8xy4
 // If result greater than 8 bits (255) Vf is set to 1 otherwise 0
 // store lower 8 bits of answer in Vx
-void carryAddRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void carryAddRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     uint16_t value = cpu->registers[x_index] + cpu->registers[y_index];
     if(value > 255){
         cpu->registers[0x00F] = 1;
@@ -137,7 +151,8 @@ void carryAddRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_
 //8xy5
 // Vx - Vy; Vx > Vy then Vf is 1 (1 = not borrow)
 // store answer in Vx
-void borrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void borrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     uint16_t x_value =  cpu->registers[x_index];
     uint16_t y_value = cpu->registers[y_index];
 
@@ -155,7 +170,8 @@ void borrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16
 // Set Vx = Vx SHR 1.
 // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. 
 // Then Vx is divided by 2.
-void shiftRight(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void shiftRight(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     uint16_t value = cpu->registers[x_index];
     cpu->registers[0x000F] = value % 2;
     cpu->registers[x_index] = value / 2;
@@ -164,7 +180,8 @@ void shiftRight(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_ind
 //8xy7
 // Vy - Vx; Vy > Vx then Vf is 1
 // store answer in Vx
-void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void reverseBorrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     uint16_t x_value =  cpu->registers[x_index];
     uint16_t y_value = cpu->registers[y_index];
 
@@ -182,7 +199,8 @@ void reverseBorrowSubRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index,
 // Set Vx = Vx SHL 1.
 // If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. 
 // Then Vx is multiplied by 2.
-void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+void shiftLeft(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    CPU *cpu = emu->cpu;
     uint16_t x_value =  cpu->registers[x_index];
     uint16_t msb = (x_value & 0x80) >> 7;
     if(msb == 1){
@@ -194,17 +212,19 @@ void shiftLeft(CPU *cpu, uint16_t instruction, uint16_t x_index, uint16_t y_inde
     cpu->registers[x_index] = x_value * 2;
 }
 
-void handle8(CPU *cpu, uint16_t instruction){
+void handle8(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t lsb = (0x000F & instruction);
     uint16_t x_index = (0x0F00 & instruction) >> 8;
     uint16_t y_index = (0x00F0 & instruction) >> 4;
 
-    _8xy_handlers[lsb](cpu, instruction, x_index, y_index);
+    _8xy_handlers[lsb](emu, instruction, x_index, y_index);
 
 }
 
 // 9xy0
-void skipIfRegisterNotEqualsRegister(CPU *cpu, uint16_t instruction){
+void skipIfRegisterNotEqualsRegister(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     if((0x000F & instruction) != 0) return;
     uint16_t register_x = (0x0F00u & instruction) >> 8;
     uint16_t register_y = (0x00F0u & instruction) >> 4;
@@ -214,14 +234,16 @@ void skipIfRegisterNotEqualsRegister(CPU *cpu, uint16_t instruction){
 
 // Annn - LD I, addr
 // Set I = nnn.
-void LoadRegisterI(CPU *cpu, uint16_t instruction){
+void LoadRegisterI(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t value = 0x0FFFu & instruction;
     cpu->index_register = value;
 }
 
 // Bnnn - JP V0, addr
 // Jump to location nnn + V0.
-void jPToOffset(CPU *cpu, uint16_t instruction){
+void jPToOffset(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t value = 0x0FFFu & instruction;
     uint16_t v0_value = cpu->registers[0];
 
@@ -231,95 +253,155 @@ void jPToOffset(CPU *cpu, uint16_t instruction){
 }
 // Cxkk - RND Vx, byte
 // rand int from 0 to 255 AND it with kk store in register Vx
-void storeRandInRegister(CPU *cpu, uint16_t instruction){
+void storeRandInRegister(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     int random = rand() % 256;
     uint16_t value = 0x00FF & instruction;
     uint16_t register_x = (0x0F00 & instruction) >> 8;
 
     cpu->registers[register_x] = value + random;
 }
+
 // Dxyn
 // Display n-byte sprite starting at memory location I at (Vx, Vy)
+// each byte will be a new row
 // Sprites xORed at existing screen 
 // If this causes sprites to be earsed Vf is set to 1, else 0
 // sprites wrap on overflow
-void readLoadSpriteBytes(CPU *cpu, uint16_t instruction){
-    // todo
+void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
+    uint16_t x_index = (0x0F00u & instruction) >> 8;
+    uint16_t y_index = (0x00F0u & instruction) >> 4;
+    uint16_t bytes = (0x000F & instruction);
+
+     CPU *cpu = emu->cpu;
+
+    // for loop for each sprite
+    for(size_t s = 0; s < bytes; s++){
+        // Get sprite it is 8 bits
+        uint8_t sprite_byte = cpu->memory[cpu->index_register + s];
+        int y = (cpu->registers[y_index] + s) % WINDOW_HEIGHT;    
+        // for loop 8 bits and xOR
+        for(size_t b = 0; b < 8; b++){
+            uint8_t new_px = (sprite_byte >> (7 - b)) & 1;
+
+            int x = (cpu->registers[x_index] + b) % WINDOW_WIDTH;  
+
+            int original_pixel_state = emu->inputs->video[matrix_coords_to_array_coords(x, y, WINDOW_WIDTH)];
+
+            emu->inputs->video[matrix_coords_to_array_coords(x, y, WINDOW_WIDTH)] = original_pixel_state ^ new_px;
+
+            if(new_px == 1 && original_pixel_state == 1){
+                cpu->registers[0xF] = 1;
+            }
+
+        }
+
+    }
 }
 
 
 
-void skipIfKeyPressed(CPU *cpu, uint16_t instruction, uint16_t x_index){
-    // todo
+void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
+    uint8_t want_value = cpu->memory[x_index];
+    uint8_t key_pressed = cpu->last_key_pressed;
+
+    if(want_value == key_pressed){
+        cpu->program_counter += 2;
+    }
 } 
-void skipIfKeyNotPressed(CPU *cpu, uint16_t instruction, uint16_t x_index){
-    // todo
+void skipIfKeyNotPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
+    uint8_t want_value = cpu->memory[x_index];
+    uint8_t key_pressed = cpu->last_key_pressed;
+
+    if(want_value != key_pressed){
+        cpu->program_counter += 2;
+    }
 } 
 
-void handleE(CPU *cpu, uint16_t instruction){
+void handleE(chip8 *emu, uint16_t instruction){
+    CPU *cpu = emu->cpu;
     uint16_t x_index = (0x0F00 & instruction) >> 8;
     uint16_t pivot = 0x00FF & instruction;
     
     switch (pivot)
     {
     case 0x009E:
-        skipIfKeyPressed(cpu, instruction, x_index);
+        skipIfKeyPressed(emu, instruction, x_index);
         break;
     
     case 0X00A1:
-    skipIfKeyNotPressed(cpu, instruction, x_index);
+    skipIfKeyNotPressed(emu, instruction, x_index);
         break;
     }
 }
 
 // Fx07 - LD Vx, DT
 // Set Vx = delay timer value.
-void loadDelayTimerValue(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void loadDelayTimerValue(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->delay_timer;
 }
 
 // Fx0A LD Vx, K
 // Wait for a key press, store the value of the key in Vx.  
 // Everything stops until a key is pressed
-void waitForKeyPress(CPU *cpu, uint16_t instruction, uint16_t x_index){
-    // todo
+void waitForKeyPress(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    // most the storing and such happens outside of this function
+    // maybe hsould change later
+    CPU *cpu = emu->cpu;
+    cpu->CPU_state = CPU_WAIT_FOR_INPUT;
+    cpu->wait_register = x_index;
+
 }
 
 // Fx15 - LD DT, Vx
 // delay timer = value in dx
-void setDelayTimer(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void setDelayTimer(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     cpu->delay_timer = cpu->registers[x_index];
 }
 
 // Fx18 - LD ST, Vx
 // sound_timer  = value in dx
-void setSoundTimer(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void setSoundTimer(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     cpu->sound_timer = cpu->registers[x_index];
 }
 
 // Fx1E 
 // I = Vx + I
-void addRegisterToIndex(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void addRegisterToIndex(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     cpu->index_register += cpu->registers[x_index];
 }
 
 // Fx29 - LD F, Vx
 // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
 // hex sprite represented by 5 uint8_t numbers
-void loadHexSprite(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void loadHexSprite(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     cpu->index_register = cpu->registers[x_index] * 5;
 }
 
 // Fx33
 // Store BCD representation of Vx in memory locations I, I+1, and I+2.
 // always 3 places
-void storeBCDInI(CPU *cpu, uint16_t instruction, uint16_t x_index){
-    // todo
+void storeBCDInI(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
+    uint16_t value = cpu->registers[x_index];
+    uint16_t index = cpu->index_register;
+    cpu->memory[cpu->index_register] = (0x0F00u & value) << 8;
+    cpu->memory[cpu->index_register + 1] = (0x00F0u & value) << 4;
+    cpu->memory[cpu->index_register + 1] = (0x000Fu & value);
+
 }
 
 // Fx55
 // The interpreter reads values from memory starting at location I into registers V0 through Vx.
-void storeManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void storeManyRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     uint16_t I = cpu->index_register;
     uint16_t stopping_point = cpu->registers[x_index];
 
@@ -331,7 +413,8 @@ void storeManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
 // Fx65
 // The interpreter copies the values of registers V0 through Vx into memory, 
 // starting at the address in I.
-void loadManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
+void loadManyRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index){
+    CPU *cpu = emu->cpu;
     uint16_t I = cpu->index_register;
     uint16_t stopping_point = cpu->registers[x_index];
 
@@ -340,38 +423,39 @@ void loadManyRegisters(CPU *cpu, uint16_t instruction, uint16_t x_index){
     }
 }
 
-void handleF(CPU *cpu, uint16_t instruction){
+void handleF(chip8 *emu, uint16_t instruction){
     uint16_t x_index = (0x0F00 & instruction) >> 8;
     uint16_t pivot = 0x00FF & instruction;
 
+    CPU *cpu = emu->cpu;
     switch (pivot)
     {
     case 0x0007:
-        loadDelayTimerValue(cpu, instruction, x_index);
+        loadDelayTimerValue(emu, instruction, x_index);
         break;
     case 0x000A:
-        waitForKeyPress(cpu, instruction, x_index);
+        waitForKeyPress(emu, instruction, x_index);
         break;
     case 0x0015:
-        setDelayTimer(cpu, instruction, x_index);
+        setDelayTimer(emu, instruction, x_index);
         break;
     case 0x0018:
-        setSoundTimer(cpu, instruction, x_index);
+        setSoundTimer(emu, instruction, x_index);
         break;
     case 0x001E:
-        addRegisterToIndex(cpu, instruction, x_index);
+        addRegisterToIndex(emu, instruction, x_index);
         break;
     case 0x0029:
-        loadHexSprite(cpu, instruction, x_index);
+        loadHexSprite(emu, instruction, x_index);
         break;
     case 0x0033:
-    storeBCDInI(cpu, instruction, x_index);
+    storeBCDInI(emu, instruction, x_index);
         break;
     case 0x0055:
-        storeManyRegisters(cpu, instruction, x_index);
+        storeManyRegisters(emu, instruction, x_index);
         break;
     case 0x0065:
-        loadManyRegisters(cpu, instruction, x_index);
+        loadManyRegisters(emu, instruction, x_index);
         break;
     
     default:
@@ -380,7 +464,8 @@ void handleF(CPU *cpu, uint16_t instruction){
 }
 
 // add bool key_pressed and key
-void executeInstruction(CPU* cpu, short instruction, bool key_pressed, int key){
+void executeInstruction(chip8* emu, short instruction, bool key_pressed, int key){
+    CPU *cpu = emu->cpu;
     if(cpu->CPU_state == CPU_WAIT_FOR_INPUT){
         if(key_pressed){
             cpu->registers[cpu->wait_register] = key;
@@ -390,5 +475,31 @@ void executeInstruction(CPU* cpu, short instruction, bool key_pressed, int key){
         return;
     }
     uint16_t msb = (0xF000 & instruction) >> 12;
-    handlers[msb](cpu, instruction);
+    handlers[msb](emu, instruction);
+}
+
+void executeInstructionCycle(chip8* emu){
+    CPU *cpu = emu->cpu;
+    uint16_t instruction = cpu->opcode;
+   
+    uint16_t msb = (0xF000 & instruction) >> 12;
+    handlers[msb](emu, instruction);
+}
+
+void cycle(chip8* emu, bool key_pressed, int key){
+    if(emu->cpu->CPU_state == CPU_WAIT_FOR_INPUT){
+        if(key_pressed){
+            emu->cpu->registers[emu->cpu->wait_register] = key;
+            emu->cpu->CPU_state = CPU_RUNNING;
+        }
+
+        return;
+    }
+
+    emu->cpu->opcode = 
+        (emu->cpu->memory[emu->cpu->program_counter] << 8) |
+        emu->cpu->memory[emu->cpu->program_counter + 1];
+    emu->cpu->program_counter += 2;
+    
+    executeInstructionCycle(emu);
 }

@@ -43,6 +43,8 @@ chip8* createChip8(){
     return emu;
 }
 
+
+
 // print out the stack content as a string
 char* listStackContents(CPU* cpu){
     char buffer[128];

@@ -12,8 +12,8 @@ project(chip8_emu LANGUAGES C)
 set(sources
 ${CMAKE_SOURCE_DIR}/src/opcodes.c
 ${CMAKE_SOURCE_DIR}/src/cpu.c
-${CMAKE_SOURCE_DIR}/src/error_helpers.c
 ${CMAKE_SOURCE_DIR}/src/graphics.c
+${CMAKE_SOURCE_DIR}/src/error_helpers.c
 )
 
 # May not be needed for tests so it is separate

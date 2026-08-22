@@ -53,6 +53,10 @@ typedef struct CPU {
 
     CpuState CPU_state;
 
+    uint8_t last_key_pressed;
+
+    bool video_should_clear;
+
 
 }CPU;
 
@@ -74,6 +78,7 @@ typedef struct chip8 {
 
 CPU* createCPU();
 chip8* createChip8();
+
 
 // print out the stack content as a string
 char* listStackContents(CPU* cpu);

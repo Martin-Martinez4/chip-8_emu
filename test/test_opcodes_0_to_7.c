@@ -3,24 +3,30 @@
 #include "opcodes.h"
 
 void testCPUStatesAfterInstruction(testCases* testCases){
-      for(int i = 0; i < testCases->cases_count; i++){
+    for (int i = 0; i < testCases->cases_count; i++) {
         testCase tc = testCases->test_cases[i];
 
         LOG_TEST(tc.test_name);
-        
-        for(int t = 0; t < tc.step_count; t++){
+
+        for (int t = 0; t < tc.step_count; t++) {
             testStep step = tc.steps[t];
-            
-            
-            CPU* result_CPU_state = &(tc.starting_CPU_state);
 
-            
+            CPU* result_CPU_state = &tc.starting_CPU_state;
 
-            executeInstruction(result_CPU_state, step.instruction, false, 0);
-            
+            chip8 emu = {
+                .cpu = result_CPU_state,
+                .inputs = NULL
+            };
 
-            CPU* expected_CPU_state = &(tc.steps[t].expected_CPU_state);
-            ASSERT_CPU_STATE_EQUAL(result_CPU_state, expected_CPU_state);
+            executeInstruction(&emu, step.instruction, false, 0);
+
+            CPU* expected_CPU_state =
+                &step.expected_CPU_state;
+
+            ASSERT_CPU_STATE_EQUAL(
+                result_CPU_state,
+                expected_CPU_state
+            );
         }
     }
 }
