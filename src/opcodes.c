@@ -273,7 +273,8 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
     uint16_t y_index = (0x00F0u & instruction) >> 4;
     uint16_t bytes = (0x000F & instruction);
 
-     CPU *cpu = emu->cpu;
+    CPU *cpu = emu->cpu;
+    cpu->registers[0xF] = 0;
 
     // for loop for each sprite
     for(size_t s = 0; s < bytes; s++){
@@ -286,9 +287,9 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
 
             int x = (cpu->registers[x_index] + b) % WINDOW_WIDTH;  
 
-            int original_pixel_state = emu->inputs->video[matrix_coords_to_array_coords(x, y, WINDOW_WIDTH)];
+            int original_pixel_state = emu->inputs->video[matrix_coords_to_array_coords(y, x, WINDOW_WIDTH)];
 
-            emu->inputs->video[matrix_coords_to_array_coords(x, y, WINDOW_WIDTH)] = original_pixel_state ^ new_px;
+            emu->inputs->video[matrix_coords_to_array_coords(y, x, WINDOW_WIDTH)] = original_pixel_state ^ new_px;
 
             if(new_px == 1 && original_pixel_state == 1){
                 cpu->registers[0xF] = 1;
@@ -303,7 +304,7 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
 
 void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
-    uint8_t want_value = cpu->memory[x_index];
+    uint8_t want_value = cpu->registers[x_index];
     uint8_t key_pressed = cpu->last_key_pressed;
 
     if(want_value == key_pressed){
@@ -312,7 +313,7 @@ void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
 } 
 void skipIfKeyNotPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
-    uint8_t want_value = cpu->memory[x_index];
+    uint8_t want_value = cpu->registers[x_index];
     uint8_t key_pressed = cpu->last_key_pressed;
 
     if(want_value != key_pressed){
@@ -392,9 +393,9 @@ void storeBCDInI(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
     uint16_t value = cpu->registers[x_index];
     uint16_t index = cpu->index_register;
-    cpu->memory[cpu->index_register] = (0x0F00u & value) << 8;
-    cpu->memory[cpu->index_register + 1] = (0x00F0u & value) << 4;
-    cpu->memory[cpu->index_register + 1] = (0x000Fu & value);
+    cpu->memory[cpu->index_register] = value / 100;
+    cpu->memory[cpu->index_register + 1] = (value / 10) %10;
+    cpu->memory[cpu->index_register + 2] = value % 10;
 
 }
 
@@ -403,10 +404,10 @@ void storeBCDInI(chip8 *emu, uint16_t instruction, uint16_t x_index){
 void storeManyRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
     uint16_t I = cpu->index_register;
-    uint16_t stopping_point = cpu->registers[x_index];
+    uint16_t stopping_point = x_index;
 
     for( int i = 0; i <= stopping_point; i++ ){
-        cpu->registers[i] = cpu->memory[I + i];
+        cpu->memory[I + i] = cpu->registers[i];
     }
 }
 
@@ -416,10 +417,10 @@ void storeManyRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index){
 void loadManyRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
     uint16_t I = cpu->index_register;
-    uint16_t stopping_point = cpu->registers[x_index];
+    uint16_t stopping_point = x_index;
 
     for( int i = 0; i <= stopping_point; i++ ){
-        cpu->memory[ I + i] = cpu->registers[i];
+        cpu->registers[i] = cpu->memory[I + i];
     }
 }
 
@@ -487,6 +488,14 @@ void executeInstructionCycle(chip8* emu){
 }
 
 void cycle(chip8* emu, bool key_pressed, int key){
+    if(key_pressed){
+
+        printf("pressed=%d key=%x state=%d\n",
+           key_pressed,
+           key,
+           emu->cpu->CPU_state);
+    }
+
     if(emu->cpu->CPU_state == CPU_WAIT_FOR_INPUT){
         if(key_pressed){
             emu->cpu->registers[emu->cpu->wait_register] = key;

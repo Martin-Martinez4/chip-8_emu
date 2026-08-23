@@ -13,6 +13,7 @@ set(sources
 ${CMAKE_SOURCE_DIR}/src/opcodes.c
 ${CMAKE_SOURCE_DIR}/src/cpu.c
 ${CMAKE_SOURCE_DIR}/src/graphics.c
+${CMAKE_SOURCE_DIR}/src/rom.c
 ${CMAKE_SOURCE_DIR}/src/error_helpers.c
 )
 

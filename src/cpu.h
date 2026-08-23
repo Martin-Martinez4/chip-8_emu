@@ -6,6 +6,7 @@
 
 
 typedef enum {
+    CPU_IDLE,
     CPU_RUNNING,
     CPU_WAIT_FOR_INPUT
 } CpuState;

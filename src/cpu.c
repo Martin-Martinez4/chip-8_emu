@@ -14,18 +14,23 @@ CPU* createCPU(){
     }
 
     uint8_t regs[16] = {0};
-    cpu->stack_pointer = -1;
     memset(cpu, 0, sizeof(CPU));
+    cpu->stack_pointer = -1;
 
     for(size_t i = 0; i < 81; i++){
         cpu->memory[i] = digit_sprites[i];
     }
+
+    cpu->CPU_state = CPU_IDLE;
 
     return cpu;
 }
 
 inputs* createInputs(){
     inputs* ins = malloc(sizeof(inputs));
+    if (ins == NULL) {
+        return NULL;
+    }
     for(size_t i = 0; i < 16; i++){
         ins->keypad[i] = DEFAULT_BINDINGS[i];
     }
@@ -37,6 +42,9 @@ inputs* createInputs(){
 
 chip8* createChip8(){
     chip8* emu = malloc(sizeof(chip8));
+    if(emu == NULL){
+        return NULL;
+    }
     emu->cpu = createCPU();
     emu->inputs = createInputs();
 
