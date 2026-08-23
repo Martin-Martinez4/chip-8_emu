@@ -69,6 +69,8 @@ typedef struct inputs {
 
  
     int keypad[16];
+    bool key_state[16];
+
 }inputs;
 
 typedef struct chip8 {

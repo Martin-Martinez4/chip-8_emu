@@ -58,7 +58,7 @@ int loadROM(chip8* emu, const char* filename){
 
     emu->cpu->program_counter = 0x200;
 
-    emu->cpu->CPU_state = CPU_WAIT_FOR_INPUT;
+    emu->cpu->CPU_state = CPU_RUNNING;
 
     return 0;
 }

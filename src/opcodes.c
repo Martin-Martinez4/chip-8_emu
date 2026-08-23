@@ -57,6 +57,7 @@ void callAddr(chip8 *emu, uint16_t instruction){
     CPU *cpu = emu->cpu;
     if(cpu->stack_pointer > 15){
         logCPUErrorAndExit("Stack Overflow instruction", instruction);
+        return;
     }
 
     cpu->stack_pointer++;
@@ -128,6 +129,7 @@ void andRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y
 
 // 8xy3
 void xorRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
+    
     CPU *cpu = emu->cpu;
     cpu->registers[x_index] = cpu->registers[x_index] ^ cpu->registers[y_index];
 }
@@ -137,15 +139,17 @@ void xorRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y
 // store lower 8 bits of answer in Vx
 void carryAddRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     CPU *cpu = emu->cpu;
-    uint16_t value = cpu->registers[x_index] + cpu->registers[y_index];
-    if(value > 255){
-        cpu->registers[0x00F] = 1;
-        value = value & 0x00FF;
-    }else{
-        cpu->registers[0x00F] = 0;
-    }
+    
+    uint8_t x = cpu->registers[x_index];
+    uint8_t y = cpu->registers[y_index];
 
-    cpu->registers[x_index] = value;
+    uint16_t result = x + y;
+
+    uint8_t vf = result > 0xFF;
+    uint8_t new_x = result & 0xFF;
+
+    cpu->registers[x_index] = new_x;
+    cpu->registers[0xF] = vf;
 }
 
 //8xy5
@@ -153,17 +157,15 @@ void carryAddRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint1
 // store answer in Vx
 void borrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     CPU *cpu = emu->cpu;
-    uint16_t x_value =  cpu->registers[x_index];
-    uint16_t y_value = cpu->registers[y_index];
+    uint8_t x =  cpu->registers[x_index];
+    uint8_t y = cpu->registers[y_index];
 
-    if(x_value > y_value){
-        cpu->registers[0x00F] = 1;
-    }else{
-        cpu->registers[0x00F] = 0;
-    }
+    uint8_t vf = x > y;
+    uint8_t new_x = x - y;
 
-    cpu->registers[x_index] = x_value - y_value;
 
+    cpu->registers[x_index] = new_x;
+    cpu->registers[0xF] = vf;
 }
 
 // 8xy6
@@ -172,9 +174,13 @@ void borrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint
 // Then Vx is divided by 2.
 void shiftRight(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     CPU *cpu = emu->cpu;
-    uint16_t value = cpu->registers[x_index];
-    cpu->registers[0x000F] = value % 2;
-    cpu->registers[x_index] = value / 2;
+
+    uint8_t old_x = cpu->registers[x_index];
+    uint8_t new_vf = old_x & 1;
+    uint8_t new_x = old_x >> 1;
+
+    cpu->registers[x_index] = new_x;
+    cpu->registers[0xF] = new_vf;
 }
 
 //8xy7
@@ -182,16 +188,14 @@ void shiftRight(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_i
 // store answer in Vx
 void reverseBorrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     CPU *cpu = emu->cpu;
-    uint16_t x_value =  cpu->registers[x_index];
-    uint16_t y_value = cpu->registers[y_index];
+    uint16_t x =  cpu->registers[x_index];
+    uint16_t y = cpu->registers[y_index];
 
-    if(y_value > x_value){
-        cpu->registers[0x00F] = 1;
-    }else{
-        cpu->registers[0x00F] = 0;
-    }
+    uint8_t vf = y > x;
+    uint8_t new_x = y - x;
 
-    cpu->registers[x_index] = y_value - x_value;
+    cpu->registers[x_index] = new_x;
+    cpu->registers[0xF] = vf;
 
 }
 
@@ -201,15 +205,14 @@ void reverseBorrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_inde
 // Then Vx is multiplied by 2.
 void shiftLeft(chip8 *emu, uint16_t instruction, uint16_t x_index, uint16_t y_index){
     CPU *cpu = emu->cpu;
-    uint16_t x_value =  cpu->registers[x_index];
-    uint16_t msb = (x_value & 0x80) >> 7;
-    if(msb == 1){
-         cpu->registers[0x00F] = 1;
-    }else{
-        cpu->registers[0x00F] = 0;
-    }
+    uint16_t x =  cpu->registers[x_index];
+    uint16_t msb = (x & 0x80) >> 7;
 
-    cpu->registers[x_index] = x_value * 2;
+    uint8_t vf = msb;
+    uint8_t new_x = (x * 2) & 0xFF;
+
+    cpu->registers[x_index] = new_x;
+    cpu->registers[0xF] = vf;
 }
 
 void handle8(chip8 *emu, uint16_t instruction){
@@ -304,19 +307,17 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
 
 void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
-    uint8_t want_value = cpu->registers[x_index];
-    uint8_t key_pressed = cpu->last_key_pressed;
+    uint8_t key = cpu->registers[x_index];
 
-    if(want_value == key_pressed){
+    if(emu->inputs->key_state[key]){
         cpu->program_counter += 2;
     }
 } 
 void skipIfKeyNotPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
-    uint8_t want_value = cpu->registers[x_index];
-    uint8_t key_pressed = cpu->last_key_pressed;
+    uint8_t key = cpu->registers[x_index];
 
-    if(want_value != key_pressed){
+    if(!emu->inputs->key_state[key]){
         cpu->program_counter += 2;
     }
 } 
@@ -484,18 +485,12 @@ void executeInstructionCycle(chip8* emu){
     uint16_t instruction = cpu->opcode;
    
     uint16_t msb = (0xF000 & instruction) >> 12;
+    // printf("opcode=%04X msb=%X\n", instruction, msb);
+
     handlers[msb](emu, instruction);
 }
 
 void cycle(chip8* emu, bool key_pressed, int key){
-    if(key_pressed){
-
-        printf("pressed=%d key=%x state=%d\n",
-           key_pressed,
-           key,
-           emu->cpu->CPU_state);
-    }
-
     if(emu->cpu->CPU_state == CPU_WAIT_FOR_INPUT){
         if(key_pressed){
             emu->cpu->registers[emu->cpu->wait_register] = key;

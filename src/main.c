@@ -82,22 +82,102 @@ int main(int argc, char* argv[]){
                         // }
 
                         switch (event.key.scancode){
-                            case SDL_SCANCODE_X: key = 0x0; key_pressed = true; break;
-                            case SDL_SCANCODE_1: key = 0x1; key_pressed = true; break;
-                            case SDL_SCANCODE_2: key = 0x2; key_pressed = true; break;
-                            case SDL_SCANCODE_3: key = 0x3; key_pressed = true; break;
-                            case SDL_SCANCODE_Q: key = 0x4; key_pressed = true; break;
-                            case SDL_SCANCODE_W: key = 0x5; key_pressed = true; break;
-                            case SDL_SCANCODE_E: key = 0x6; key_pressed = true; break;
-                            case SDL_SCANCODE_A: key = 0x7; key_pressed = true; break;
-                            case SDL_SCANCODE_S: key = 0x8; key_pressed = true; break;
-                            case SDL_SCANCODE_D: key = 0x9; key_pressed = true; break;
-                            case SDL_SCANCODE_Z: key = 0xA; key_pressed = true; break;
-                            case SDL_SCANCODE_C: key = 0xB; key_pressed = true; break;
-                            case SDL_SCANCODE_4: key = 0xC; key_pressed = true; break;
-                            case SDL_SCANCODE_R: key = 0xD; key_pressed = true; break;
-                            case SDL_SCANCODE_F: key = 0xE; key_pressed = true; break;
-                            case SDL_SCANCODE_V: key = 0xF; key_pressed = true; break;
+                            case SDL_SCANCODE_X: 
+                            key = 0x0; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true;
+                            break;
+                            
+                            case SDL_SCANCODE_1: 
+                            key = 0x1; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_2: 
+                            key = 0x2; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_3: 
+                            key = 0x3; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_Q: 
+                            key = 0x4; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_W: 
+                            key = 0x5; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_E: 
+                            key = 0x6; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_A: 
+                            key = 0x7; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_S: 
+                            key = 0x8; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_D: 
+                            key = 0x9; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_Z: 
+                            key = 0xA; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_C: 
+                            key = 0xB; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_4: 
+                            key = 0xC; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_R: 
+                            key = 0xD; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_F: 
+                            key = 0xE; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
+                            case SDL_SCANCODE_V: 
+                            key = 0xF; 
+                            key_pressed = true;
+                            chip8->inputs->key_state[key] = true; 
+                            break
+                            ;
 
                             case SDL_SCANCODE_M:
 
@@ -106,6 +186,90 @@ int main(int argc, char* argv[]){
                                 break;
                         }
                         break;
+                    case  SDL_EVENT_KEY_UP:
+                     switch (event.key.scancode){
+                        case SDL_SCANCODE_X: 
+                        key = 0x0; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false;
+                        break;
+                        case SDL_SCANCODE_1: 
+                        key = 0x1; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_2: 
+                        key = 0x2; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_3: 
+                        key = 0x3; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_Q: 
+                        key = 0x4; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_W: 
+                        key = 0x5; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_E: 
+                        key = 0x6; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_A: 
+                        key = 0x7; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_S: 
+                        key = 0x8; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_D: 
+                        key = 0x9; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_Z: 
+                        key = 0xA; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_C: 
+                        key = 0xB; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_4: 
+                        key = 0xC; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_R: 
+                        key = 0xD; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_F: 
+                        key = 0xE; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+                        case SDL_SCANCODE_V: 
+                        key = 0xF; 
+                        key_pressed = false;
+                        chip8->inputs->key_state[key] = false; 
+                        break;
+
+                     }
                 }
             }
 
