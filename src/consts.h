@@ -8,6 +8,9 @@
 #define WINDOW_HEIGHT 32
 #define WINDOW_DIMENSIONS (WINDOW_WIDTH * WINDOW_HEIGHT)
 
+#define CPU_HZ 700
+#define TIMER_HZ 60
+
 static const SDL_Scancode DEFAULT_BINDINGS[16] = { 
         SDL_SCANCODE_X,  // CHIP-8 0
         SDL_SCANCODE_1,  // CHIP-8 1

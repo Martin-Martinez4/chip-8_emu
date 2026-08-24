@@ -36,6 +36,7 @@ inputs* createInputs(){
     }
 
     memset(ins->video, 0, sizeof ins->video);
+    memset(ins->key_state, 0, sizeof ins->key_state);
 
     return ins;
 }

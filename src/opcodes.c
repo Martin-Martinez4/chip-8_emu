@@ -22,7 +22,8 @@ void ret(chip8 *emu, uint16_t instruction){
 
 void cls(chip8 *emu, uint16_t instruction){
     CPU *cpu = emu->cpu;
-    cpu->video_should_clear = true;
+    // cpu->video_should_clear = true;
+    memset(emu->inputs->video, 0, sizeof emu->inputs->video);
 } 
 
 // shift right 12 to get first number of opcode
@@ -191,7 +192,7 @@ void reverseBorrowSubRegisters(chip8 *emu, uint16_t instruction, uint16_t x_inde
     uint16_t x =  cpu->registers[x_index];
     uint16_t y = cpu->registers[y_index];
 
-    uint8_t vf = y > x;
+    uint8_t vf = y >= x;
     uint8_t new_x = y - x;
 
     cpu->registers[x_index] = new_x;
@@ -258,11 +259,11 @@ void jPToOffset(chip8 *emu, uint16_t instruction){
 // rand int from 0 to 255 AND it with kk store in register Vx
 void storeRandInRegister(chip8 *emu, uint16_t instruction){
     CPU *cpu = emu->cpu;
-    int random = rand() % 256;
-    uint16_t value = 0x00FF & instruction;
-    uint16_t register_x = (0x0F00 & instruction) >> 8;
+    int random = rand() % 0xFF;
+    uint16_t value = instruction & 0xFF;
+    uint16_t register_x = (instruction >> 8) & 0xF;
 
-    cpu->registers[register_x] = value + random;
+    cpu->registers[register_x] = random & value;
 }
 
 // Dxyn
@@ -303,11 +304,10 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
     }
 }
 
-
-
 void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
     uint8_t key = cpu->registers[x_index];
+
 
     if(emu->inputs->key_state[key]){
         cpu->program_counter += 2;
@@ -384,7 +384,7 @@ void addRegisterToIndex(chip8 *emu, uint16_t instruction, uint16_t x_index){
 // hex sprite represented by 5 uint8_t numbers
 void loadHexSprite(chip8 *emu, uint16_t instruction, uint16_t x_index){
     CPU *cpu = emu->cpu;
-    cpu->index_register = cpu->registers[x_index] * 5;
+    cpu->index_register = 0x50 + cpu->registers[x_index] * 5;
 }
 
 // Fx33
@@ -485,20 +485,27 @@ void executeInstructionCycle(chip8* emu){
     uint16_t instruction = cpu->opcode;
    
     uint16_t msb = (0xF000 & instruction) >> 12;
-    // printf("opcode=%04X msb=%X\n", instruction, msb);
 
     handlers[msb](emu, instruction);
 }
 
-void cycle(chip8* emu, bool key_pressed, int key){
-    if(emu->cpu->CPU_state == CPU_WAIT_FOR_INPUT){
-        if(key_pressed){
-            emu->cpu->registers[emu->cpu->wait_register] = key;
-            emu->cpu->CPU_state = CPU_RUNNING;
+void cycle(chip8* emu){
+    CPU *cpu = emu->cpu;
+ 
+    if (cpu->CPU_state == CPU_WAIT_FOR_INPUT) {
+
+        if (emu->cpu->key_pressed) {
+            cpu->registers[cpu->wait_register] = emu->cpu->last_key_pressed;
+
+            cpu->CPU_state = CPU_RUNNING;
+
+            // Consume the key press
+            emu->cpu->key_pressed = false;
         }
 
         return;
     }
+
 
     emu->cpu->opcode = 
         (emu->cpu->memory[emu->cpu->program_counter] << 8) |

@@ -143,5 +143,5 @@ static opcodeHandlerWithXY _8xy_handlers[16] = {
 
 void executeInstruction(chip8 *emu, short instruction, bool key_pressed, int key);
 void executeInstructionCycle(chip8 *emu);
-void cycle(chip8* chip8, bool key_pressed, int key);
+void cycle(chip8* chip8);
 #endif
