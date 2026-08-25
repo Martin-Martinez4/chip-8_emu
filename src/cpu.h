@@ -2,6 +2,14 @@
 #define chip8_emu_H_CPU
 
 #include <stdint.h>
+#include "consts.h"
+
+
+typedef enum {
+    CPU_IDLE,
+    CPU_RUNNING,
+    CPU_WAIT_FOR_INPUT
+} CpuState;
 // Information From: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
 // Memory structure
@@ -16,14 +24,16 @@
 // 0x200-0xFFF: Instructions from the ROM will be stored starting at 0x200, 
 // and anything left after the ROM’s space is free to use.
 
-struct CPU   {
+typedef struct CPU {
     // 16 8 bit registers
     // v0 to vF
     uint8_t registers[16];
     uint8_t memory[4096];
 
     // stores memory address 16-bit
+    // points to a place in 4kb memory
     uint16_t index_register;
+
 
     // points to next instruction of course
     uint16_t program_counter;
@@ -31,34 +41,52 @@ struct CPU   {
     // 16-level stack
     uint16_t stack[16];
 
-    uint8_t stack_pointer;
+    // keep track of register to fill after waiting
+    // Not part of actually specs
+    uint16_t wait_register;
 
-    uint8_t delayTimer;
-    uint8_t soundTimer;
+    int8_t stack_pointer;
+
+    uint8_t delay_timer;
+    uint8_t sound_timer;
    
     uint16_t opcode;
-};
 
-struct inputs {
+    CpuState CPU_state;
+
+    uint8_t last_key_pressed;
+    bool key_pressed; 
+
+    bool video_should_clear;
+
+
+}CPU;
+
+// screen and input may have to be global
+typedef struct inputs {
     // display is 64 px wide by 32 px tall
     // originally only on or off monochrome
-    uint32_t video[64 * 32];
+    int video[WINDOW_DIMENSIONS];
 
-    /*
-        Keypad       Keyboard
-        +-+-+-+-+    +-+-+-+-+
-        |1|2|3|C|    |1|2|3|4|
-        +-+-+-+-+    +-+-+-+-+
-        |4|5|6|D|    |Q|W|E|R|
-        +-+-+-+-+ => +-+-+-+-+
-        |7|8|9|E|    |A|S|D|F|
-        +-+-+-+-+    +-+-+-+-+
-        |A|0|B|F|    |Z|X|C|V|
-        +-+-+-+-+    +-+-+-+-+
-    */
-    uint8_t keypad[16];
-};
+ 
+    int keypad[16];
+    bool key_state[16];
 
+}inputs;
+
+typedef struct chip8 {
+    CPU* cpu;
+    inputs* inputs;
+}chip8;
+
+
+CPU* createCPU();
+chip8* createChip8();
+
+
+// print out the stack content as a string
+char* listStackContents(CPU* cpu);
+int cpuCpm(CPU* cpu1, CPU* cpu2);
 
 
 #endif
