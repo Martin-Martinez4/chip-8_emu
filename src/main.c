@@ -60,6 +60,11 @@ int main(int argc, char* argv[]){
     uint64_t last_time = SDL_GetPerformanceCounter();
     double cpu_accumulator = 0.0;
     double timer_accumulator = 0.0;
+    double render_accumulator = 0.0;
+
+    double cpu_period = 1.0 / CPU_HZ;
+    double timer_period = 1.0 / 60.0;
+    double render_period = 1.0 / 60.0;
 
     double frequency = (double)SDL_GetPerformanceFrequency();
 
@@ -78,6 +83,8 @@ int main(int argc, char* argv[]){
 
         cpu_accumulator += elapsed;
         timer_accumulator += elapsed;
+        render_accumulator += elapsed;
+
 
         // if(chip8->cpu->video_should_clear){
         //     memset(chip8->inputs->video, 0, sizeof chip8->inputs->video);
@@ -163,7 +170,6 @@ int main(int argc, char* argv[]){
                 }
             }
 
-            double cpu_period = 1.0/CPU_HZ;
 
             while(cpu_accumulator >= cpu_period){
 
@@ -172,29 +178,37 @@ int main(int argc, char* argv[]){
                 cycle(chip8);
                 cpu_accumulator -= cpu_period;
 
-                while (timer_accumulator >= (1.0 / 60.0)) {
-                    if (chip8->cpu->delay_timer > 0)
-                        chip8->cpu->delay_timer--;
-
-                    if (chip8->cpu->sound_timer > 0)
-                        chip8->cpu->sound_timer--;
-
-                    timer_accumulator -= 1.0 / 60.0;
-                }
             }
+            
+            while (timer_accumulator >= timer_period) {
+                if (chip8->cpu->delay_timer > 0)
+                    chip8->cpu->delay_timer--;
 
+                if (chip8->cpu->sound_timer > 0)
+                    chip8->cpu->sound_timer--;
+
+                timer_accumulator -= 1.0 / 60.0;
+            }
           
+
+
+      
 
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
 
-            int num_to_draw = drawRects(chip8->inputs->video, rects, mag);
+            int num_to_draw =
+                drawRects(chip8->inputs->video, rects, mag);
 
             SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
             SDL_RenderFillRects(renderer, rects, num_to_draw);
 
             SDL_RenderPresent(renderer);
 
+            
+            
+
+            
     }
 
     return 0;

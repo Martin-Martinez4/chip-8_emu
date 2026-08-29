@@ -22,8 +22,10 @@ void ret(chip8 *emu, uint16_t instruction){
 
 void cls(chip8 *emu, uint16_t instruction){
     CPU *cpu = emu->cpu;
-    // cpu->video_should_clear = true;
+
     memset(emu->inputs->video, 0, sizeof emu->inputs->video);
+
+    
 } 
 
 // shift right 12 to get first number of opcode
@@ -276,8 +278,8 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
     uint16_t x_index = (0x0F00u & instruction) >> 8;
     uint16_t y_index = (0x00F0u & instruction) >> 4;
     uint16_t bytes = (0x000F & instruction);
-
     CPU *cpu = emu->cpu;
+    
     cpu->registers[0xF] = 0;
 
     // for loop for each sprite
@@ -302,6 +304,7 @@ void readLoadSpriteBytes(chip8 *emu, uint16_t instruction){
         }
 
     }
+
 }
 
 void skipIfKeyPressed(chip8 *emu, uint16_t instruction, uint16_t x_index){

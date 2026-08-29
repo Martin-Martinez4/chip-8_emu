@@ -17,7 +17,7 @@ CPU* createCPU(){
     memset(cpu, 0, sizeof(CPU));
     cpu->stack_pointer = -1;
 
-    for(size_t i = 0; i < 81; i++){
+    for(size_t i = 0; i < 80; i++){
         cpu->memory[i] = digit_sprites[i];
     }
 

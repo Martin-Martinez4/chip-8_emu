@@ -57,7 +57,7 @@ typedef struct CPU {
     uint8_t last_key_pressed;
     bool key_pressed; 
 
-    bool video_should_clear;
+    bool frame_ready;
 
 
 }CPU;
